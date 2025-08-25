@@ -1,0 +1,27 @@
+name: Daily Telegram cleanup
+
+on:
+  schedule:
+    - cron: "0 18 * * *"   # каждый день в 22:00 МСК (19:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install telethon
+
+      - name: Copy session file
+        run: echo "${{ secrets.SESSION_FILE }}" | base64 -d > cleanup_session.session
+
+      - name: Run cleanup
+        run: python cleanup.py
