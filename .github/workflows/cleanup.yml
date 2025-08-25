@@ -2,26 +2,39 @@ name: Daily Telegram cleanup
 
 on:
   schedule:
-    - cron: "0 18 * * *"   # каждый день в 22:00 МСК (19:00 UTC)
-  workflow_dispatch:
+    # Пример: ежедневно в 03:00 UTC (в Москве это 06:00 зимой/06:00 летом при UTC+3)
+    - cron: "0 18 * * *"
+  workflow_dispatch: {}
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install deps
+      - name: Install dependencies
         run: pip install telethon
 
-      - name: Copy session file
-        run: echo "${{ secrets.SESSION_FILE }}" | base64 -d > cleanup_session.session
+      - name: Restore Telethon session from secret
+        # Секрет TELETHON_SESSION содержит base64 от cleanup_session.session
+        run: |
+          echo "${{ secrets.TELETHON_SESSION }}" | tr -d '\r\n' | base64 -d > cleanup_session.session
+          ls -l cleanup_session.session
 
       - name: Run cleanup
-        run: python cleanup.py
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          CHANNEL: ${{ secrets.CHANNEL }}
+          WHITELIST: ${{ secrets.WHITELIST }}
+          BATCH: ${{ secrets.BATCH }}
+          SLEEP: ${{ secrets.SLEEP }}
+          DRY_RUN: ${{ secrets.DRY_RUN }}
+        run: |
+          python cleanup_channel.py
