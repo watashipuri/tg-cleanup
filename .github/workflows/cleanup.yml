@@ -3,7 +3,7 @@ name: Daily Telegram cleanup
 on:
   schedule:
     # Пример: ежедневно в 03:00 UTC (в Москве это 06:00 зимой/06:00 летом при UTC+3)
-    - cron: "*/5 * * * *"
+    - cron: "0 18 * * *"
   workflow_dispatch: {}
 
 jobs:
